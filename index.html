@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Christia Mae's 7th Birthday Pony Photobooth</title>
+<style>
+:root{--pink:#f7a9d0;--deep:#773d8c;--purple:#b99ae8;--sky:#9fe0ee;--cream:#fff9fd}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Trebuchet MS",Arial,sans-serif;color:var(--deep);background:linear-gradient(135deg,#ffe4f0,#e9ddff 52%,#d9f7ff);min-height:100vh}
+header{text-align:center;padding:24px 14px 18px;background:linear-gradient(90deg,#ffc7df,#d8c5ff,#bceefa);border-bottom:5px solid white}
+header .unicorn{font-size:2.2rem}
+h1{font-size:clamp(1.65rem,4vw,2.7rem);margin:5px 0;color:#d84e9c;text-shadow:2px 2px white,3px 4px #8852a1}
+header p{margin:7px 0;font-weight:bold}
+main{max-width:1150px;margin:22px auto;padding:0 14px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(290px,.9fr);gap:18px}
+.panel{background:#ffffffdf;border:3px solid white;border-radius:22px;padding:17px;box-shadow:0 10px 28px #8852a122}
+h2{font-size:1.2rem;margin:0 0 12px}
+.camera{position:relative;background:#342543;aspect-ratio:4/3;border-radius:16px;overflow:hidden;display:grid;place-items:center}
+video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#count{position:absolute;display:none;color:white;font-size:clamp(65px,13vw,120px);font-weight:900;text-shadow:0 4px 15px #57235f}
+.cameraTag{position:absolute;left:10px;right:10px;bottom:10px;text-align:center;color:white;font-weight:bold;text-shadow:0 2px 5px #54245c}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:13px}
+button,select{border:0;border-radius:30px;padding:11px 15px;background:#f7d2e7;color:#673c82;font-weight:800;cursor:pointer}
+button.primary{background:linear-gradient(90deg,#ed83bb,#a98ce2);color:white}
+button:disabled{opacity:.45;cursor:not-allowed}
+select{background:#eee3ff}
+.filters{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.filters button{font-size:.82rem;padding:8px 11px}
+.filters button.active{outline:3px solid #b99ae8;background:white}
+.note{font-size:.9rem;line-height:1.5;color:#795d8e}
+#progress{font-weight:bold;color:#a34c98;margin-top:12px}
+#result{display:none;width:min(100%,470px);height:auto;margin:12px auto 0;border:5px solid white;box-shadow:0 5px 20px #6e438533}
+#shots{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}
+.shot{aspect-ratio:1;background:#f2e6fa;border:2px dashed #c6a8e6;border-radius:10px;overflow:hidden;display:grid;place-items:center;color:#9876ad;font-size:.8rem}
+.shot img{width:100%;height:100%;object-fit:cover}
+.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.gallery img{width:100%;border:3px solid white;border-radius:12px;display:block}
+.gallery button{width:100%;margin-top:5px;padding:8px}
+footer{text-align:center;padding:10px 12px 24px;color:#765887}
+@media(max-width:760px){main{grid-template-columns:1fr}.panel{padding:13px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="unicorn">🦄 🌈 ✨ 🦋</div>
+ <h1>CHRISTIA MAE'S 7TH BIRTHDAY</h1>
+ <p>♡ Pony Party Photobooth ♡</p>
+ <p>November 7, 2026 &nbsp; • &nbsp; 4:00 PM</p>
+</header>
+<main>
+<section class="panel">
+ <h2>📸 Make your 4-photo birthday collage!</h2>
+ <div class="camera" id="cameraBox">
+  <video id="video" autoplay playsinline muted></video>
+  <div id="count"></div>
+  <div class="cameraTag" id="cameraTag">Enable the camera to get started!</div>
+ </div>
+ <div class="controls">
+  <button id="start" class="primary">Enable Camera</button>
+  <label for="timer">Timer</label>
+  <select id="timer"><option value="3">3 sec</option><option value="5">5 sec</option><option value="10">10 sec</option></select>
+  <button id="capture" class="primary" disabled>📷 Take next photo</button>
+  <button id="reset" disabled>↻ Start over</button>
+ </div>
+ <div class="filters" aria-label="Photo filters">
+  <button class="active" data-filter="none">Original</button>
+  <button data-filter="soft">Soft Pink</button>
+  <button data-filter="lavender">Lavender</button>
+  <button data-filter="warm">Warm Glow</button>
+  <button data-filter="bw">B&W</button>
+ </div>
+ <div id="progress">0 of 4 photos captured</div>
+ <div id="shots">
+  <div class="shot">Photo 1</div><div class="shot">Photo 2</div><div class="shot">Photo 3</div><div class="shot">Photo 4</div>
+ </div>
+ <p class="note" id="status">Allow camera access, then take four poses. Your finished keepsake will look like a pastel pony-party photo frame.</p>
+ <canvas id="result" width="900" height="1200"></canvas>
+ <div class="controls" style="justify-content:center">
+  <button id="download" class="primary" disabled>⬇ Download collage PNG</button>
+ </div>
+</section>
+<aside class="panel">
+ <h2>🌸 Birthday photo gallery</h2>
+ <p class="note">Completed four-photo collages appear here. Download them to keep a copy.</p>
+ <div id="gallery" class="gallery"></div>
+</aside>
+</main>
+<footer>Made with love for Christia Mae's magical 7th birthday! 💗</footer>
+<script>
+const video=document.getElementById('video'),countEl=document.getElementById('count');
+const startBtn=document.getElementById('start'),captureBtn=document.getElementById('capture');
+const resetBtn=document.getElementById('reset'),downloadBtn=document.getElementById('download');
+const timer=document.getElementById('timer'),statusEl=document.getElementById('status');
+const result=document.getElementById('result'),rctx=result.getContext('2d');
+let stream=null, photos=[],filterName='none',busy=false,collageReady=false;
+const filters={none:'none',soft:'saturate(1.15) sepia(.10) hue-rotate(320deg) brightness(1.06)',lavender:'saturate(1.15) hue-rotate(18deg) brightness(1.05)',warm:'sepia(.2) saturate(1.2) brightness(1.06)',bw:'grayscale(1) contrast(1.08)'};
+document.querySelectorAll('.filters button').forEach(btn=>btn.addEventListener('click',()=>{
+ document.querySelectorAll('.filters button').forEach(b=>b.classList.remove('active'));
+ btn.classList.add('active');filterName=btn.dataset.filter;
+}));
+startBtn.addEventListener('click',async()=>{
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+  video.srcObject=stream;await video.play();
+  startBtn.disabled=true;captureBtn.disabled=false;
+  document.getElementById('cameraTag').textContent='Camera ready — smile! 💗';
+  statusEl.textContent='Take four different poses. The countdown runs before each photo.';
+ }catch(err){statusEl.textContent='Camera access failed. Allow camera permission and open this page using HTTPS or localhost.';}
+});
+function wait(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
+async function countdown(){
+ for(let n=Number(timer.value);n>0;n--){countEl.textContent=n;countEl.style.display='block';await wait(1000);}
+ countEl.textContent='✨';await wait(250);countEl.style.display='none';
+}
+function captureFrame(){
+ const c=document.createElement('canvas');
+ c.width=video.videoWidth||960;c.height=video.videoHeight||720;
+ const x=c.getContext('2d');x.filter=filters[filterName]||'none';
+ x.translate(c.width,0);x.scale(-1,1);x.drawImage(video,0,0,c.width,c.height);x.setTransform(1,0,0,1,0,0);x.filter='none';
+ return c;
+}
+function updateShots(){
+ document.querySelectorAll('.shot').forEach((el,i)=>{
+  if(photos[i]){el.innerHTML='';const im=document.createElement('img');im.src=photos[i].toDataURL('image/jpeg',.92);im.alt='Captured pose '+(i+1);el.appendChild(im);}
+  else el.textContent='Photo '+(i+1);
+ });
+ document.getElementById('progress').textContent=photos.length+' of 4 photos captured';
+}
+captureBtn.addEventListener('click',async()=>{
+ if(!stream||busy||photos.length>=4)return;
+ busy=true;captureBtn.disabled=true;resetBtn.disabled=false;
+ statusEl.textContent='Get ready for pose '+(photos.length+1)+'!';
+ await countdown();
+ photos.push(captureFrame());updateShots();
+ if(photos.length<4){captureBtn.textContent='📷 Take photo '+(photos.length+1)+' of 4';statusEl.textContent='Great pose! Get ready for the next one.';captureBtn.disabled=false;}
+ else{
+  makeCollage();collageReady=true;result.style.display='block';downloadBtn.disabled=false;
+  captureBtn.textContent='All 4 photos complete!';statusEl.textContent='Your pony-party collage is ready! Download your PNG below.';
+  document.getElementById('cameraTag').textContent='Your 4-photo collage is ready! 🎉';
+  addGalleryItem();
+ }
+ busy=false;
+});
+function roundRect(ctx,x,y,w,h,r,fill,stroke){
+ ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+ if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=8;ctx.stroke();}
+}
+
+function makeCollage(){
+  const w=result.width,h=result.height;
+  rctx.clearRect(0,0,w,h);
+
+  // Dreamy pink-lavender background and layered rounded frame
+  const bg=rctx.createLinearGradient(0,0,w,h);
+  bg.addColorStop(0,'#ffb8df'); bg.addColorStop(.42,'#d8b9ff'); bg.addColorStop(1,'#b9eefa');
+  rctx.fillStyle=bg; rctx.fillRect(0,0,w,h);
+  roundRect(rctx,18,18,w-36,h-36,42,'#fff8ff','#fff');
+  roundRect(rctx,34,34,w-68,h-68,34,'#fce7f6','#f8c5e5');
+
+  function heart(x,y,s,color){
+    rctx.save();rctx.translate(x,y);rctx.scale(s/30,s/30);
+    rctx.beginPath();rctx.moveTo(0,10);
+    rctx.bezierCurveTo(-34,-12,-22,-35,0,-17);
+    rctx.bezierCurveTo(22,-35,34,-12,0,10);
+    rctx.closePath();rctx.fillStyle=color;rctx.fill();
+    rctx.lineWidth=2;rctx.strokeStyle='#fff8ff';rctx.stroke();rctx.restore();
+  }
+  function star(x,y,r,color){
+    rctx.save();rctx.beginPath();
+    for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.43:r;rctx.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr);}
+    rctx.closePath();rctx.fillStyle=color;rctx.fill();rctx.lineWidth=4;rctx.strokeStyle='#fff';rctx.stroke();rctx.restore();
+  }
+  function rainbow(x,y,scale){
+    const cols=['#ff77b8','#ffb2a5','#ffe58a','#a8df86','#8edcf2','#b99aff'];
+    rctx.save();rctx.lineCap='round';
+    cols.forEach((c,i)=>{rctx.beginPath();rctx.strokeStyle=c;rctx.lineWidth=17*scale;rctx.arc(x,y,105*scale-i*17*scale,Math.PI,Math.PI*2);rctx.stroke();});
+    rctx.restore();
+  }
+  function cloud(x,y,s){
+    rctx.save();rctx.translate(x,y);rctx.scale(s,s);rctx.fillStyle='#fff';
+    rctx.beginPath();rctx.arc(-22,0,18,0,Math.PI*2);rctx.arc(0,-12,25,0,Math.PI*2);rctx.arc(24,0,17,0,Math.PI*2);rctx.fillRect(-28,0,58,15);rctx.fill();rctx.restore();
+  }
+  function pony(x,y,s,body,mane,withHorn=false){
+    rctx.save();rctx.translate(x,y);rctx.scale(s,s);
+    rctx.lineCap='round';rctx.lineJoin='round';
+    // flowing tail
+    rctx.beginPath();rctx.moveTo(-22,28);rctx.bezierCurveTo(-75,18,-73,75,-35,72);
+    rctx.bezierCurveTo(-58,53,-39,48,-22,49);rctx.fillStyle=mane;rctx.fill();
+    // legs
+    rctx.strokeStyle=body;rctx.lineWidth=17;
+    [[-15,48,-20,91],[12,48,17,91],[34,43,39,87]].forEach(a=>{rctx.beginPath();rctx.moveTo(a[0],a[1]);rctx.lineTo(a[2],a[3]);rctx.stroke();});
+    // body and neck
+    rctx.fillStyle=body;rctx.beginPath();rctx.ellipse(0,35,48,31,-.08,0,Math.PI*2);rctx.fill();
+    rctx.beginPath();rctx.moveTo(19,27);rctx.quadraticCurveTo(23,-12,40,-28);rctx.lineTo(64,-12);rctx.lineTo(45,45);rctx.fill();
+    // head
+    rctx.beginPath();rctx.ellipse(48,-35,34,29,-.12,0,Math.PI*2);rctx.fill();
+    // forelock and mane
+    rctx.fillStyle=mane;rctx.beginPath();rctx.moveTo(20,-48);rctx.bezierCurveTo(0,-91,46,-91,53,-61);
+    rctx.bezierCurveTo(77,-79,91,-48,65,-35);rctx.bezierCurveTo(48,-49,42,-40,20,-48);rctx.fill();
+    // ear
+    rctx.beginPath();rctx.moveTo(36,-55);rctx.lineTo(31,-83);rctx.lineTo(51,-61);rctx.fill();
+    if(withHorn){rctx.fillStyle='#ffe58b';rctx.beginPath();rctx.moveTo(54,-59);rctx.lineTo(67,-91);rctx.lineTo(70,-55);rctx.fill();}
+    // eye and smile
+    rctx.fillStyle='#fff';rctx.beginPath();rctx.ellipse(60,-37,9,12,0,0,Math.PI*2);rctx.fill();
+    rctx.fillStyle='#332044';rctx.beginPath();rctx.arc(63,-36,5,0,Math.PI*2);rctx.fill();
+    rctx.strokeStyle='#9d477d';rctx.lineWidth=2;rctx.beginPath();rctx.arc(72,-18,8,.2,1.6);rctx.stroke();
+    // little sparkle mark
+    rctx.fillStyle='#fff2a8';rctx.beginPath();rctx.arc(-1,34,7,0,Math.PI*2);rctx.fill();
+    rctx.restore();
+  }
+  function castle(x,y,s){
+    rctx.save();rctx.translate(x,y);rctx.scale(s,s);
+    rctx.fillStyle='#b58be8';rctx.strokeStyle='#fff0ff';rctx.lineWidth=4;
+    rctx.fillRect(-48,-65,96,105);rctx.fillRect(-78,-35,34,75);rctx.fillRect(44,-35,34,75);
+    rctx.beginPath();rctx.moveTo(-58,-65);rctx.lineTo(-31,-112);rctx.lineTo(-4,-65);rctx.fill();
+    rctx.beginPath();rctx.moveTo(4,-65);rctx.lineTo(31,-125);rctx.lineTo(58,-65);rctx.fill();
+    rctx.beginPath();rctx.moveTo(-86,-35);rctx.lineTo(-61,-78);rctx.lineTo(-36,-35);rctx.fill();
+    rctx.beginPath();rctx.moveTo(36,-35);rctx.lineTo(61,-78);rctx.lineTo(86,-35);rctx.fill();
+    rctx.fillStyle='#7651b2';rctx.beginPath();rctx.arc(0,40,19,Math.PI,0);rctx.fill();
+    rctx.fillStyle='#f8d7f0';rctx.fillRect(-57,-22,12,22);rctx.fillRect(45,-22,12,22);
+    rctx.strokeRect(-48,-65,96,105);rctx.restore();
+  }
+
+  // Rainbow and fairytale castle behind the title
+  rainbow(245,150,.9);
+  castle(755,175,.72);
+  rctx.textAlign='center';rctx.textBaseline='middle';
+  rctx.save();
+  rctx.font='italic 76px "Brush Script MT","Segoe Script",cursive';
+  rctx.lineWidth=8;rctx.strokeStyle='#fff';rctx.strokeText('Happy 7th Birthday',w/2,92);
+  rctx.fillStyle='#30223f';rctx.shadowColor='#fff';rctx.shadowBlur=7;
+  rctx.fillText('Happy 7th Birthday',w/2,92);
+  rctx.font='italic 82px "Brush Script MT","Segoe Script",cursive';
+  rctx.lineWidth=8;rctx.strokeStyle='#fff';rctx.strokeText('Christia Mae',w/2,180);
+  rctx.fillStyle='#33203f';rctx.fillText('Christia Mae',w/2,180);
+  rctx.restore();
+
+  // Four softly rounded photo windows with a clean white/pink edge
+  const margin=76,gap=24,top=260,cellW=(w-2*margin-gap)/2,cellH=325;
+  photos.forEach((photo,i)=>{
+    const x=margin+(i%2)*(cellW+gap),y=top+Math.floor(i/2)*(cellH+gap);
+    roundRect(rctx,x-7,y-7,cellW+14,cellH+14,25,'#fff','#f6b9df');
+    rctx.save();rctx.beginPath();rctx.roundRect(x,y,cellW,cellH,19);rctx.clip();
+    const scale=Math.max(cellW/photo.width,cellH/photo.height);
+    const sw=cellW/scale,sh=cellH/scale,sx=(photo.width-sw)/2,sy=(photo.height-sh)/2;
+    rctx.drawImage(photo,sx,sy,sw,sh,x,y,cellW,cellH);rctx.restore();
+    // tiny corner sparkle on each window
+    star(x+cellW-20,y+20,13,'#ffe27a');
+  });
+
+  // Decorative hearts and stars down the sides
+  for(let i=0;i<8;i++){
+    const yy=300+i*112;
+    heart(43,yy,28,i%2?'#ff65b5':'#d98aff');
+    heart(w-43,yy+35,27,i%2?'#d98aff':'#ff65b5');
+    if(i%2===0){star(48,yy+53,17,'#ffd45e');star(w-48,yy-28,15,'#ffd45e');}
+  }
+
+  // Friendly little pony characters tucked into the lower corners
+  pony(104,1060,.92,'#ff9acb','#e83d9e',false);
+  pony(795,1060,.92,'#f7f3ff','#8c55d5',true);
+
+  // Soft cloud-and-rainbow footer with a pony-party feel
+  rainbow(450,1190,.72);
+  cloud(135,1130,1.15);cloud(765,1130,1.15);
+  rctx.textAlign='center';rctx.textBaseline='middle';
+  rctx.font='bold 43px "Trebuchet MS",Arial';rctx.fillStyle='#fff';
+  rctx.lineWidth=7;rctx.strokeStyle='#a64d9b';rctx.strokeText('♡  HAVE A MAGICAL DAY!  ♡',w/2,1080);
+  rctx.fillText('♡  HAVE A MAGICAL DAY!  ♡',w/2,1080);
+  rctx.font='40px Arial';rctx.fillStyle='#fff';rctx.fillText('🦄   🌈   ✨   🦄',w/2,1160);
+
+  // A few glitter dots in the outer frame
+  for(let i=0;i<42;i++){
+    const x=48+((i*137)%804),y=245+((i*83)%690);
+    if(x>margin+cellW+gap/2-12 && x<margin+cellW+gap/2+12) continue;
+    rctx.beginPath();rctx.arc(x,y,3+(i%3),0,Math.PI*2);
+    rctx.fillStyle=i%2?'#fff':'#ffe68b';rctx.fill();
+  }
+}
+
+function addGalleryItem(){
+ const wrap=document.createElement('div'),img=document.createElement('img'),btn=document.createElement('button');
+ wrap.appendChild(img);img.src=result.toDataURL('image/png');img.alt='Christia Mae birthday photo collage';
+ btn.textContent='⬇ Save PNG';btn.addEventListener('click',downloadCollage);wrap.appendChild(btn);
+ document.getElementById('gallery').prepend(wrap);
+}
+function downloadCollage(){
+ const a=document.createElement('a');a.download='Christia-Mae-7th-Birthday-Pony-Collage.png';a.href=result.toDataURL('image/png');a.click();
+}
+downloadBtn.addEventListener('click',downloadCollage);
+resetBtn.addEventListener('click',()=>{
+ photos=[];collageReady=false;result.style.display='none';downloadBtn.disabled=true;resetBtn.disabled=true;
+ captureBtn.disabled=!stream;captureBtn.textContent='📷 Take photo 1 of 4';updateShots();
+ statusEl.textContent='Ready for four new poses!';document.getElementById('cameraTag').textContent='Camera ready — smile! 💗';
+});
+window.addEventListener('beforeunload',()=>{if(stream)stream.getTracks().forEach(t=>t.stop());});
+</script>
+</body>
+</html>
